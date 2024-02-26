@@ -110,8 +110,9 @@ int lsh_execute(char **args)
 
 
 //reading a line
-#define LSH_RL_BUFSIZE 1024
 char *lsh_read_line(void){
+#ifdef LSH_USE_STD_GETLINE
+
   char *line = NULL;
   ssize_t bufsize = 0; // have getline allocate a buffer for us
 
@@ -123,8 +124,9 @@ char *lsh_read_line(void){
       exit(EXIT_FAILURE);
     }
   }
-
   return line;
+#else
+#define LSH_RL_BUFSIZE 1024
 
   int bufsize = LSH_RL_BUFSIZE;
   int position = 0;
@@ -159,6 +161,7 @@ char *lsh_read_line(void){
       }
     }
   }
+#endif
 }
 
 
