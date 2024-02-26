@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
-//Function Declarations for builtin shell commands
+//Function Declarations for builtin shell commands:
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
@@ -28,9 +28,8 @@ int lsh_num_builtins() {
   return sizeof(builtin_str) / sizeof(char *);
 }
 
-/*
-  Builtin function implementations.
-*/
+//Builtin function implementations.
+
 int lsh_cd(char **args)
 {
   if (args[1] == NULL) {
@@ -46,7 +45,7 @@ int lsh_cd(char **args)
 int lsh_help(char **args)
 {
   int i;
-  printf("Nikolozu's Shell\n");
+  printf("Nikolozu's LSH\n");
   printf("Type program names and arguments, and hit enter.\n");
   printf("The following are built in:\n");
 
@@ -64,8 +63,9 @@ int lsh_exit(char **args)
 }
 
 
-int lsh_launch(char **args){
-  pid_t pid, wpid;
+int lsh_launch(char **args)
+{
+  pid_t pid;
   int status;
 
   pid = fork();
@@ -81,14 +81,12 @@ int lsh_launch(char **args){
   } else {
     // Parent process
     do {
-      wpid = waitpid(pid, &status, WUNTRACED);
+      waitpid(pid, &status, WUNTRACED);
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
   }
 
   return 1;
 }
-
-
 
 int lsh_execute(char **args)
 {
@@ -108,26 +106,22 @@ int lsh_execute(char **args)
   return lsh_launch(args);
 }
 
-
-//reading a line
-char *lsh_read_line(void){
+char *lsh_read_line(void)
+{
 #ifdef LSH_USE_STD_GETLINE
-
   char *line = NULL;
   ssize_t bufsize = 0; // have getline allocate a buffer for us
-
-  if (getline(&line, &bufsize, stdin) == -1){
+  if (getline(&line, &bufsize, stdin) == -1) {
     if (feof(stdin)) {
-      exit(EXIT_SUCCESS);  // We recieved an EOF
+      exit(EXIT_SUCCESS);  // We received an EOF
     } else  {
-      perror("readline");
+      perror("lsh: getline\n");
       exit(EXIT_FAILURE);
     }
   }
   return line;
 #else
 #define LSH_RL_BUFSIZE 1024
-
   int bufsize = LSH_RL_BUFSIZE;
   int position = 0;
   char *buffer = malloc(sizeof(char) * bufsize);
@@ -142,8 +136,9 @@ char *lsh_read_line(void){
     // Read a character
     c = getchar();
 
-    // If we hit EOF, replace it with a null character and return.
-    if (c == EOF || c == '\n') {
+    if (c == EOF) {
+      exit(EXIT_SUCCESS);
+    } else if (c == '\n') {
       buffer[position] = '\0';
       return buffer;
     } else {
@@ -164,9 +159,9 @@ char *lsh_read_line(void){
 #endif
 }
 
-
 #define LSH_TOK_BUFSIZE 64
 #define LSH_TOK_DELIM " \t\r\n\a"
+
 char **lsh_split_line(char *line)
 {
   int bufsize = LSH_TOK_BUFSIZE, position = 0;
@@ -188,7 +183,7 @@ char **lsh_split_line(char *line)
       tokens_backup = tokens;
       tokens = realloc(tokens, bufsize * sizeof(char*));
       if (!tokens) {
-        free(tokens_backup);
+		free(tokens_backup);
         fprintf(stderr, "lsh: allocation error\n");
         exit(EXIT_FAILURE);
       }
@@ -200,8 +195,6 @@ char **lsh_split_line(char *line)
   return tokens;
 }
 
-
-//getting input and executing
 void lsh_loop(void)
 {
   char *line;
@@ -218,8 +211,6 @@ void lsh_loop(void)
     free(args);
   } while (status);
 }
-
-
 
 int main(int argc, char **argv)
 {
